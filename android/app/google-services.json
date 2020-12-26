@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "482550578245",
+    "project_id": "krimapractical",
+    "storage_bucket": "krimapractical.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482550578245:android:8289e7f3d0ec596368772c",
+        "android_client_info": {
+          "package_name": "com.example.krima_practical"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "482550578245-6c9p7i5vvan6ad1j3ki1batgbf2pf40g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.krima_practical",
+            "certificate_hash": "cdacbfa31dad6f431a28cf92831487ebb63d1ca1"
+          }
+        },
+        {
+          "client_id": "482550578245-21milm0ku9qm5mhf4lpeha0tmm8bob4t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5GmaIGolXwKvl6d5-3U3DI9YDjHrTShY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "482550578245-21milm0ku9qm5mhf4lpeha0tmm8bob4t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
