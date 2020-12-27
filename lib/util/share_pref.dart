@@ -1,31 +1,27 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'dart:typed_data';
+
 
 class UserPreferences {
   Future<bool> saveUserEmail(String email) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('emailUser', email);
-//    prefs.setString('userName', user.name);
     return true;
   }
 
   Future<bool> saveUserName(String name) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('userName', name);
-//    prefs.setString('userName', user.name);
     return true;
   }
 
   Future<bool> saveMobileNumber(String mobileNumber) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('mobileNumber', mobileNumber);
-//    prefs.setString('userName', user.name);
     return true;
   }
 

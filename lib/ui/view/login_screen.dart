@@ -3,6 +3,11 @@ import 'package:country_list_pick/country_list_pick.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:krima_practical/util/country_list.dart';
+import 'package:toast/toast.dart';
+import 'otp_screen.dart';
+import 'package:krima_practical/ui/component/button_widget.dart';
+import 'package:krima_practical/util/share_pref.dart';
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -13,9 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
   String phoneNo;
   String smsOTP;
   String verificationId;
+  bool _loading = true;
   String errorMessage = '';
   CountryCode _selectedCountry;
   final mobileController=TextEditingController();
+  GlobalKey<FormState> _loginFormKey;
 
 
   FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,12 +38,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> verifyPhone() async {
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
       this.verificationId = verId;
-      Navigator.of(context).pushReplacementNamed('/otpscreen');
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+          builder: (context) => OtpScreen(mobileNumber: mobileController.text,),
+      )).then((value) => mobileController.clear());
+
+      // Navigator.of(context).pushReplacementNamed('/otpscreen');
       // smsOTPDialog(context).then((value) {
       //   print('sign in');
       // });
     };
     print('phone number--->${phoneNo}');
+    UserPreferences().saveMobileNumber(phoneNo);
+
     try {
       await _auth.verifyPhoneNumber(
           phoneNumber: this.phoneNo,
@@ -51,8 +66,11 @@ class _LoginScreenState extends State<LoginScreen> {
           timeout: const Duration(seconds: 20),
           verificationCompleted: (AuthCredential phoneAuthCredential) {
             print(phoneAuthCredential);
+            _loading=false;
           },
           verificationFailed: (Exception exceptio) {
+            Toast.show(exceptio.toString(), context,
+                duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
             print('${exceptio.toString()}');
           });
     } catch (e) {
@@ -60,69 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<bool> smsOTPDialog(BuildContext context) {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return new AlertDialog(
-            title: Text('Enter SMS Code'),
-            content: Container(
-              height: 85,
-              child: Column(children: [
-                TextField(
-                  onChanged: (value) {
-                    this.smsOTP = value;
-                  },
-                ),
-                (errorMessage != ''
-                    ? Text(
-                        errorMessage,
-                        style: TextStyle(color: Colors.red),
-                      )
-                    : Container())
-              ]),
-            ),
-            contentPadding: EdgeInsets.all(10),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Done'),
-                onPressed: () {
-                  if (_auth.currentUser != null) {
-                    if (_auth.currentUser.displayName != null) {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pushReplacementNamed('/homepage');
-                    }
-                  } else {
-                    signIn();
-                  }
 
 
-                },
-              )
-            ],
-          );
-        });
-  }
 
-  signIn() async {
-    try {
-      final AuthCredential credential = PhoneAuthProvider.getCredential(
-        verificationId: verificationId,
-        smsCode: smsOTP,
-      );
-
-      _auth.signInWithCredential(credential).then((value) {
-        // Navigator.of(context).pop();
-        Navigator.of(context).pushReplacementNamed('/homepage');
-      }).catchError((e) {
-        print(e);
-      });
-    } catch (e) {
-      print(e);
-      handleError(e);
-    }
-  }
 
   handleError(PlatformException error) {
     print(error);
@@ -160,31 +118,39 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
+    _loginFormKey = new GlobalKey<FormState>();
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        _loading = false;
+      });
+    });
     mobileController.text=_selectedCountry!=null?_selectedCountry.dialCode:"+91";
   }
 
   Widget countryDropDownWidget() {
     return Padding(
-      padding: EdgeInsets.only(left: 10, right: 10),
-      child: DropdownButton<CountryCode>(
-        isExpanded: true,
-        value: _selectedCountry,
-        hint: Text('India'),
+      padding: EdgeInsets.only(left: 30, right: 30),
+      child: Container(
+        child: DropdownButton<CountryCode>(
+          isExpanded: true,
+          value: _selectedCountry,
+          hint: Text('India'),
 
-        items: elements.map((value) {
-          return new DropdownMenuItem(
-            value: value,
-            child: new Text(value.name),
-          );
-        }).toList(),
-        onChanged: (name) {
-          setState(() {
-            _selectedCountry = name;
-            mobileController.text=_selectedCountry!=null?_selectedCountry.dialCode:"+91";
-          });
-        },
+          items: elements.map((value) {
+            return new DropdownMenuItem(
+              value: value,
+              child: new Text(value.name),
+            );
+          }).toList(),
+          onChanged: (name) {
+            setState(() {
+              _selectedCountry = name;
+              mobileController.text=_selectedCountry!=null?_selectedCountry.dialCode:"+91";
+            });
+          },
 
 
+        ),
       ),
     );
   }
@@ -210,15 +176,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   phoneTextInputWidget() {
-    return Padding(
-      padding: EdgeInsets.all(30),
-      child: TextField(
-        controller: mobileController,
-        decoration: InputDecoration(
-            hintText: 'Enter Mobile Number'),
-        onChanged: (value) {
-          this.phoneNo = value;
-        },
+    return Form(
+      key: _loginFormKey,
+      child: Padding(
+        padding: EdgeInsets.all(30),
+        child: TextFormField(
+          validator: (input) => input.length == 3||  input.length == 4
+              ? 'Please Enter Mobile Number'
+              : null,
+          controller: mobileController,
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(
+              hintText: 'Enter Mobile Number +911111111111'),
+          onChanged: (value) {
+            this.phoneNo = value;
+          },
+        ),
       ),
     );
   }
@@ -253,25 +226,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        verifyOtpButtonWidget()
+        ButtonWidget(onPressed:(){
+          if(_loginFormKey.currentState.validate())
+          {
+
+            verifyPhone();
+
+          }
+        },text: 'Login',)
       ],
     );
   }
 
-Widget verifyOtpButtonWidget() {
-    return  Container(
-      width: MediaQuery.of(context).size.width,
-      height: 50,
-      margin: EdgeInsets.only(bottom: 30,left: 25,right: 25),
-      child: RaisedButton(
-        onPressed: () {
-          verifyPhone();
-        },
-        child: Text('Login',style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-        textColor: Colors.white,
-        color: Colors.blue,
-        elevation: 0,
-      ),
-    );
-}
+
 }

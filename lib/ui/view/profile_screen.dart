@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:toast/toast.dart';
+import 'package:krima_practical/ui/component/button_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -17,13 +18,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
 
-  // String _name,_mobile,_email;
+   String _mobile;
   GlobalKey<FormState> _profileFormKey;
 
   @override
   void initState() {
     _profileFormKey = new GlobalKey<FormState>();
-    // _getProfileDetail();
+    _getProfileDetail();
+
   }
 
   @override
@@ -31,6 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
+        automaticallyImplyLeading: false,
       ),
       body: baseBodyWidget(),
     );
@@ -68,7 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-        saveButton()
+        ButtonWidget( onPressed: () {
+          saveProfileDetail();
+        },text: 'Save',)
       ],
     );
   }
@@ -184,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   mobileTextInputWidget() {
-    return TextFormField(
+        return TextFormField(
         keyboardType: TextInputType.phone,
         controller: _mobileController,
         validator: (input) => input.length == 0
@@ -223,25 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ));
   }
 
-  saveButton() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: 50,
-      margin: EdgeInsets.only(bottom: 30, left: 25, right: 20, top: 30),
-      child: RaisedButton(
-        onPressed: () {
-          saveProfileDetail();
-        },
-        child: Text(
-          'Save',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        textColor: Colors.white,
-        color: Colors.blue,
-        elevation: 0,
-      ),
-    );
-  }
+
 
   void saveProfileDetail() async {
     if (_profileFormKey.currentState.validate()) {
@@ -254,8 +241,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             UserPreferences.base64String(_image.readAsBytesSync()));
         UserPreferences().saveIsLogin(true);
 
-        Toast.show("Profile Information Save Successfully", context,
+        Toast.show("Profile Information Save Successfully Thank you", context,
             duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+        Navigator.of(context).pushNamed('/welcomescreen');
       } else {
         Toast.show("Please Select Profile Picture", context,
             duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
@@ -263,19 +251,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-//  _getProfileDetail()async {
-//   bool isLogin=false;
-//   isLogin=await UserPreferences().getLoginStatus();
-//   if(isLogin!=null && isLogin)
-//     {
-//       _email=await UserPreferences().getUserEmail();
-//       _mobile=await UserPreferences().getMobileNumber();
-//       _name=await UserPreferences().getUserName();
-//       _nameController.text=_name;
-//       _emailController.text=_email;
-//       _mobileController.text=_mobile;
-//     }
-//
-// }
+ _getProfileDetail()async {
+  bool isLogin=false;
+  isLogin=await UserPreferences().getLoginStatus();
+  _mobile=await UserPreferences().getMobileNumber();
+    // String  _email=await UserPreferences().getUserName();
+  if(_mobile!=null && _mobile.length>2)
+    {
+      if(_mobile.startsWith("+"))
+      {
+        if(_mobile.length==13)
+        {
+
+          _mobileController.text=_mobile.substring(3);
+        }
+        else if(_mobile.length==14)
+        {
+
+          _mobileController.text=_mobile.substring(4);
+        }
+
+
+      }
+      else
+      {
+        _mobileController.text=_mobile;
+      }
+    }
+      // _mobile=await UserPreferences().getMobileNumber();
+      // _name=await UserPreferences().getUserName();
+      // _nameController.text=_name;
+      // _emailController.text=_email;
+      // _mobileController.text=_mobile;
+
+
+}
 
 }
